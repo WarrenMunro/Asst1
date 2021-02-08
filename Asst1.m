@@ -1,31 +1,39 @@
+%% Monte-Carlo Modeling of Electron Transport
+% ELEC 4700 Assignment 1
+% Warren Munro - 101058184
+
+%% 1 Electron Modelling
 m_o = 9.109e-31;
 m_n = 0.26*m_o;
 T = 300;
 kb = 1.380649e-23; %J/K
-% 1 Electron Modelling
-%1.1 vth = ?
+
+%%
+% The thermal velocity at 300K was calculated using the following equation.
 v_th = sqrt(2*kb*T/m_n);
 
-%1.2
+%%
+% The thermal veolcity could then be used to calculate the mean free path
 tau_mn = 0.2e-12;
 L_n = v_th*tau_mn;
 
-%1.3
-
+%%
+% The boundaries are set to 200nm by 100nm and 1000 particles are given
+% random positions within the limits.
 Xsize = 200e-9;
 Ysize = 100e-9;
-% Randomize position within region
 p_x = rand(1000, 1)*Xsize;
 p_y = rand(1000, 1)*Ysize;
 
-% Give fixed velocity with random angle
+%%
+% Particles are given a fixed velocity with random angle.
 v_x = zeros(1000, 1);
 v_y = zeros(1000, 1);
 theta = rand(1000, 1)*2*pi;
 v_x = cos(theta).*v_th;
 v_y = sin(theta).*v_th;
 
-%Configure plot settings
+
 line_color = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'w'];
 clf
 figure(1)
@@ -36,10 +44,18 @@ title('Electron Movement through a Semiconductor')
 xlabel('position (m)')
 ylabel('position (m)')
 
-delta_t = 5.35e-15; %time step size
+%%
+% A time step size was selected so that particles can move no more than 1nm
+% per cycle. The simulation will be ran for 1001 time steps.
+delta_t = 5.35e-15;
 time = linspace(0, 1000*delta_t, 1001);
 T_avg = zeros(1001, 1);
-%plot position then update
+
+%%
+%Particle positions are updated based on their velocity then plotted. After
+%each update, particle positions are checked to see if they have
+%encountered a bondary. If a boundary is passed, then it's position will be
+%corrected so that it interacts correctly with the boundary.
 for i = 0:1000
     Xprev = p_x;
     Yprev = p_y;
@@ -69,7 +85,7 @@ for i = 0:1000
         end
     end
     
-    %plot points
+    %The first ten particles in the array are plotted. 
     subplot(2, 1, 1)
     hold on
     for j = 1:14
@@ -91,19 +107,31 @@ for i = 0:1000
     title('Temperature of the Semiconductor')
     xlabel('Time (s)')
     ylabel('Temperature (K)')
-    pause(0.01)
 end
 hold off
 
-%Part 2 will add the scattering of electrons
+%%
+%The resulting plots show that the particles are behaving correctly. Particles
+%reflect off of the vertical limits and pass through the horizontal limits and continue on the same trajectory from the opposite side. The
+%particles are given a random initial angle and a fixed velocity. Due to
+%the constant velocity of each particle, the temperature never changes
+%becuase it is related to the electrom velocity.
 
+%% 2 Collisions with Mean Free Path
+%In part 2, the simulation is repeated except for now the particle
+%velocities will be randomized to a Maxwell-Boltzmann distribution, and
+%electrons will have a chance to scatter, where their angle and velocity is
+%randomized again.
+
+% The probability of an electron scattering follows the following equation.
 P_scat = 1 - exp(-delta_t/tau_mn);
 
-% Randomize position within region
+%Positions are randomized in the same way as before, but now the velocities
+%are given a random angle and a random velocity instead of being fixed at
+%v_th.
 p_x = rand(1000, 1)*Xsize;
 p_y = rand(1000, 1)*Ysize;
 
-%Randomize velocities
 theta = rand(1000, 1)*2*pi;
 v_x = cos(theta).*v_th*randn();
 v_y = sin(theta).*v_th*randn();
@@ -116,7 +144,6 @@ title('Electron Scattering in a Semiconductor')
 xlabel('position (m)')
 ylabel('position (m)')
 
-%plot position then update
 for i = 0:1000
     Xprev = p_x;
     Yprev = p_y;
@@ -182,11 +209,21 @@ for i = 0:1000
     title('Temperature of the Semiconductor')
     xlabel('Time (s)')
     ylabel('Temperature (K)')
-    pause(0.01)
+    %pause(0.01)
 end
 
+%%
+%The plots show that the electrons now scatter and randomly change
+%direction. Due to the changing velocities of the particles, the
+%temperature now fluctuates. As the temperature plot shows, The temperature
+%starts off low, then rises to an equilibrium around 200K and fluctuates
+%around that temperature until the simulation is complete. The histogram
+%shows that the velocities are in fact in a Maxwell-Boltzmann Distribution.
 
-%Part 3 adds boxes of insulation that block the electron flow.
+%% 3 Enhancements
+%Part 3 adds a bottleneck boundary to the middle of the region. The
+%boundary is an insulator, so particles will reflect off of the barriers
+%upon contact
 
 %box coordinates
 box1_top = 100e-9;
@@ -312,7 +349,7 @@ for i = 0:1000
     end
     hold off
     
-    pause(0.01)
+    %pause(0.01)
 end
 
 density = zeros(100, 200);
@@ -341,3 +378,13 @@ title('Temperature')
 xlabel('position (nm)')
 ylabel('position (nm)')
 zlabel('Temperature')
+
+%% 
+%The plots show that the particles are reflected off of the insulating
+%bottleneck. There is no free electrons within the insulators. The electron
+%density was plotted, and it shows that the distribution of electrons
+%throughout the semiconductor is random, except for in the insulator
+%regions where there is no electrons present. The temperature also apears
+%to be random throughout the semiconductor, with there being no temperature
+%within the insulator becuase the temperature is based on electron velocity
+%and there is no free electrons in the insulator to generate a temperature.
